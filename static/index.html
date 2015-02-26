@@ -6,7 +6,7 @@
     <meta content='width=device-width; height=device-height; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;' name='viewport' />
     <meta name="viewport" content="width=device-width" />
     <meta name="license" content="
-        Copyright 2013 Abram Hindle
+        Copyright 2013 Abram Hindle and Frank Yau
 
         Licensed under the Apache License, Version 2.0 (the "License");
         you may not use this file except in compliance with the License.
@@ -63,18 +63,24 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
 
 world = {};
 
-//XXX: TODO Make this prettier!
+//XXX: Make this prettier!
 function drawCircle(context,entity) {
     with(context) {
         beginPath();
-        lineWidth = 3;
+        lineWidth = 50;
         var x = entity["x"];
         var y = entity["y"];
         //moveTo(x,y);
         fillStyle = entity["colour"];
         strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);
-        stroke();
+        if (entity["colour"] === "yellow") {
+            arc(x, y, entity["radius"], 0.15 * Math.PI, 1.85 * Math.PI, false);
+            lineTo(x, y);
+            fill();
+        } else {
+            arc(x, y, entity["radius"], 0, 2.0 * Math.PI, false);
+            fill();
+        }
     }
 }
 
@@ -147,7 +153,6 @@ function addEntity(entity, data) {
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just  modified!
     sendJSONXMLHTTPRequest('/entity/'+entity, data);
-
 }
 
 var counter = 0;
@@ -157,6 +162,7 @@ function addEntityWithoutName(data) {
     addEntity(name,data);
 }
 
+var click_count = 0;
 // canvas + mouse/touch is complicated
 // I give you this because well the mouse/touch stuff is a total
 // pain to get right. This has some out of context bug too.
@@ -254,23 +260,24 @@ mouse = (function() {
 })();
 
 // Add the application specific mouse listeners!
-//XXX: TODO Make these prettier!
+//XXX: Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'yellow','radius':15+(click_count*0.1)});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'white','radius':15});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
+    addEntityWithoutName({'x':x,'y':y,'colour':'#FFAAA4',
                           'radius':10});
+    click_count += 1;
 });
 
 
 function update() {
-    //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
+    //XXX: Get the world from the webservice using a XMLHTTPRequest
     sendJSONXMLHTTPRequest('/world', null, function(data) {
         world = data;
         drawNextFrame();
